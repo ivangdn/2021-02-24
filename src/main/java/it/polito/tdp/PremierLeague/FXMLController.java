@@ -8,6 +8,7 @@ package it.polito.tdp.PremierLeague;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.PremierLeague.model.GiocatoreMigliore;
 import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Model;
 import javafx.event.ActionEvent;
@@ -47,17 +48,55 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	txtResult.clear();
+    	Match m = cmbMatch.getValue();
+    	if(m==null) {
+    		txtResult.setText("Selezionare un match");
+    		return;
+    	}
     	
+    	model.creaGrafo(m);
+    	txtResult.appendText("GRAFO CREATO\n");
+    	txtResult.appendText(String.format("# VERTICI: %d\n# ARCHI: %d", model.nVertici(), model.nArchi()));
+    	
+    	btnSimula.setDisable(false);
     }
 
     @FXML
     void doGiocatoreMigliore(ActionEvent event) {    	
+    	txtResult.clear();
+    	GiocatoreMigliore p = model.getGiocatoreMigliore();
+    	if(p==null) {
+    		txtResult.setText("ERRORE! Crea prima il grafo");
+    		return;
+    	}
     	
+    	txtResult.appendText("Giocatore migliore:\n");
+    	txtResult.appendText(p.toString());
     }
     
     @FXML
     void doSimula(ActionEvent event) {
-
+    	txtResult.clear();
+    	Match m = cmbMatch.getValue();
+    	if(m==null) {
+    		txtResult.setText("Selezionare un match");
+    		return;
+    	}
+    	
+    	int N;
+    	try {
+    		N = Integer.parseInt(txtN.getText());
+    	} catch(NumberFormatException e) {
+    		txtResult.setText("Inserire un numero valido di azioni salienti");
+    		return;
+    	}
+    	
+    	model.simula(N, m);
+    	txtResult.appendText("RISULTATO FINALE:\n");
+    	txtResult.appendText(String.format("%s %d - %d %s\n", m.getTeamHomeNAME(), model.getGoalTeam1(), model.getGoalTeam2(), m.getTeamAwayNAME()));
+    	txtResult.appendText(String.format("Espulsi %s: %d\n", m.getTeamHomeNAME(), model.getNumEspulsi1()));
+    	txtResult.appendText(String.format("Espulsi %s: %d", m.getTeamAwayNAME(), model.getNumEspulsi2()));
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -68,10 +107,13 @@ public class FXMLController {
         assert cmbMatch != null : "fx:id=\"cmbMatch\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtN != null : "fx:id=\"txtN\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Scene.fxml'.";
+        
+        btnSimula.setDisable(true);
 
     }
     
     public void setModel(Model model) {
     	this.model = model;
+    	cmbMatch.getItems().addAll(model.getAllMatches());
     }
 }
